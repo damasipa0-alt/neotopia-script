@@ -1,3 +1,108 @@
-# Neotopia Script Manager
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neotopia Script Manager</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#10131d;color:white;font-family:Arial,sans-serif}
+header{padding:22px;background:#191f30;border-bottom:1px solid #30394f}
+h2{margin:0;color:#69a5ff}
+header p{color:#9ca9c4;font-size:13px}
+main{padding:18px;max-width:650px;margin:auto}
+button{border:0;border-radius:8px;padding:12px;background:#397cff;color:white;font-weight:bold;cursor:pointer}
+input,textarea{width:100%;padding:13px;margin:8px 0;background:#1c2435;border:1px solid #35415a;border-radius:8px;color:white}
+textarea{height:130px;resize:vertical}
+.card{background:#1a2131;padding:15px;border-radius:10px;margin:12px 0;border:1px solid #30394f}
+.card h3{margin:0 0 8px;color:#82b3ff}
+.small{font-size:12px;color:#9ca9c4}
+.actions{display:flex;gap:8px;margin-top:12px}
+.delete{background:#bd414b}
+</style>
+</head>
+<body>
+<header>
+<h2>NEOTOPIA SCRIPTS</h2>
+<p>Script Manager • Android Edition</p>
+</header>
+<main>
+<h3>Tambah Script</h3>
+<input id="name" placeholder="Nama script">
+<textarea id="code" placeholder="Tempel kode script di sini..."></textarea>
+<button onclick="addScript()">+ Simpan Script</button>
 
-Aplikasi untuk menyimpan dan mengelola kumpulan script Neotopia.
+<h3 style="margin-top:28px">Koleksi Script</h3>
+<input id="search" placeholder="Cari script..." oninput="render()">
+<div id="list"></div>
+</main>
+<script>
+let scripts=JSON.parse(localStorage.getItem("neoScripts")||"[]");
+
+function save(){
+ localStorage.setItem("neoScripts",JSON.stringify(scripts));
+ render();
+}
+
+function addScript(){
+ let name=document.getElementById("name").value.trim();
+ let code=document.getElementById("code").value.trim();
+ if(!name||!code){alert("Isi nama dan kode script!");return;}
+ scripts.push({id:Date.now(),name,code});
+ document.getElementById("name").value="";
+ document.getElementById("code").value="";
+ save();
+}
+
+function removeScript(id){
+ if(confirm("Hapus script ini?")){
+ scripts=scripts.filter(s=>s.id!==id);
+ save();
+ }
+}
+
+function copyScript(id){
+ let s=scripts.find(x=>x.id===id);
+ if(!s)return;
+ if(navigator.clipboard){
+ navigator.clipboard.writeText(s.code).then(()=>alert("Script berhasil disalin!")).catch(()=>alert("Gagal menyalin script."));
+ }else{
+ alert("Browser tidak mendukung fitur salin.");
+ }
+}
+
+function render(){
+ let q=document.getElementById("search").value.toLowerCase();
+ let list=document.getElementById("list");
+ list.innerHTML="";
+ let filtered=scripts.filter(s=>s.name.toLowerCase().includes(q));
+ if(!filtered.length){
+ list.innerHTML='<p class="small">Belum ada script tersimpan.</p>';
+ return;
+ }
+ filtered.forEach(s=>{
+ let div=document.createElement("div");
+ div.className="card";
+ let title=document.createElement("h3");
+ title.textContent=s.name;
+ let info=document.createElement("p");
+ info.className="small";
+ info.textContent=s.code.length+" karakter";
+ let actions=document.createElement("div");
+ actions.className="actions";
+ let copy=document.createElement("button");
+ copy.textContent="Salin";
+ copy.onclick=()=>copyScript(s.id);
+ let del=document.createElement("button");
+ del.textContent="Hapus";
+ del.className="delete";
+ del.onclick=()=>removeScript(s.id);
+ actions.append(copy,del);
+ div.append(title,info,actions);
+ list.append(div);
+ });
+}
+render();
+</script>
+</body>
+</html>
