@@ -5,6 +5,10 @@ import android.os.Bundle;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebSettings;
+import android.webkit.WebResourceRequest;
+import android.net.Uri;
+import android.content.Intent;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
@@ -22,6 +26,37 @@ public class MainActivity extends Activity {
         settings.setDomStorageEnabled(true);
 
         webView.setWebViewClient(new WebViewClient() {
+
+            @Override
+            public boolean shouldOverrideUrlLoading(
+                    WebView view, WebResourceRequest request) {
+
+                String url = request.getUrl().toString();
+
+                if (url.startsWith("intent://")) {
+                    Toast.makeText(
+                        MainActivity.this,
+                        "Pengalihan Neotopia terdeteksi",
+                        Toast.LENGTH_SHORT
+                    ).show();
+
+                    return true;
+                }
+
+                return false;
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(
+                    WebView view, String url) {
+
+                if (url.startsWith("intent://")) {
+                    return true;
+                }
+
+                return false;
+            }
+
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
@@ -43,9 +78,13 @@ public class MainActivity extends Activity {
                     "'<br><textarea id=\"neo-code\" placeholder=\"Tempel script di sini\" style=\"width:95%;height:90px;margin-top:8px\"></textarea>' +" +
                     "'<br><button id=\"neo-save\">Simpan</button>' +" +
                     "'<div id=\"neo-list\"></div>';" +
+
                     "document.body.appendChild(panel);" +
 
-                    "btn.onclick=function(){panel.style.display=panel.style.display==='none'?'block':'none';showList();};" +
+                    "btn.onclick=function(){" +
+                    "panel.style.display=panel.style.display==='none'?'block':'none';" +
+                    "showList();" +
+                    "};" +
 
                     "function showList(){" +
                     "let data=JSON.parse(localStorage.getItem('neoScripts')||'[]');" +
@@ -57,8 +96,13 @@ public class MainActivity extends Activity {
                     "row.textContent=s.name+' ';" +
                     "let del=document.createElement('button');" +
                     "del.textContent='Hapus';" +
-                    "del.onclick=function(){data.splice(i,1);localStorage.setItem('neoScripts',JSON.stringify(data));showList();};" +
-                    "row.appendChild(del);list.appendChild(row);" +
+                    "del.onclick=function(){" +
+                    "data.splice(i,1);" +
+                    "localStorage.setItem('neoScripts',JSON.stringify(data));" +
+                    "showList();" +
+                    "};" +
+                    "row.appendChild(del);" +
+                    "list.appendChild(row);" +
                     "});" +
                     "}" +
 
@@ -71,7 +115,8 @@ public class MainActivity extends Activity {
                     "localStorage.setItem('neoScripts',JSON.stringify(data));" +
                     "document.getElementById('neo-name').value='';" +
                     "document.getElementById('neo-code').value='';" +
-                    "showList();alert('Script tersimpan');" +
+                    "showList();" +
+                    "alert('Script tersimpan');" +
                     "};" +
                     "})();";
 
@@ -79,7 +124,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        webView.loadUrl("https://playneotopia.com");
+        webView.loadUrl("https://playneotopia.com/");
     }
 
     @Override
